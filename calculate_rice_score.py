@@ -1,60 +1,11 @@
 import os
 import asana
+import json
 
 from argparse import ArgumentParser
 
-# projects is an array of objects in the following format
-
-# projects = [
-#     { 'name': 'KateTest',         #user-friendly name
-#       'id': '<projectId>',        # string, project id
-#       'userid': '<userEmail>',    # string, email address of the other user who should be assigned tasks in this project
-#       'group': 'self'},            # group name. matches list of groups
-# ]
-
-def get_user_selected_group(groups):
-    """Prompt user to select project group."""
-
-    for i, group in enumerate(groups):
-        print i, ': ' + group
-    print i + 1, ': all'
-    print i + 2, ': choose'
-
-    return raw_input('Select (name) which projects or groups to add task to: ')
-
-
-def get_user_task_title():
-    "Prompt user for task title, and return result."
-
-    return raw_input("Enter task title: ")
-
-def get_user_task_description():
-    """Prompt user for task description. return as a string."""
-
-    print("Enter task description: (Ctrl-D to finish)")
-    contents = []
-    while True:
-        try:
-            line = raw_input("")
-        except EOFError:
-            break
-        contents.append(line)
-    return '\n'.join(contents)
-
-
-def get_projects_by_user_select(projects):
-    """Prompts the user for each project to determine whether to add task to that project.
-
-    :param projects: (list) all projects for the user to select from
-    :return: (list) all projects selected by the user
-    """
-
-    selected_projects = []
-    for project in projects:
-        add_to_project = raw_input('Add to ' + project['name'] + ' [y/n]? ')
-        if(add_to_project == 'y'):
-            selected_projects.append(project)
-    return selected_projects
+def pprint(s):
+    return json.dumps(s, indent=4, separators=(',',':'))
 
 
 ###########
@@ -70,14 +21,85 @@ me = client.users.me()
 
 
 project_id = '1165398058700585'
-project = client.projects.find_by_id(project_id, opt_fields=['effort', 'confidence', '1165398058700602'])
-print(project)
-tasks = client.tasks.find_by_project(project_id)
+REACH_GID = '1165398058700602'
+IMPACT_GID = '1165398058700616'
+CONFIDENCE_GID = '1165398058700597'
+EFFORT_GID = '1165398058700624'
 
+# project = client.projects.find_by_id(project_id)
+# print(json.dumps(project, indent=4, separators=(',',':')))
+
+reach_field = client.custom_fields.find_by_id(REACH_GID)
+reach_options = {}
+for option in reach_field['enum_options']:
+    reach_options[option['gid']] = int(option['name'])
+
+print(reach_options)
+print(pprint(reach_field))
+
+impact_field = client.custom_fields.find_by_id(IMPACT_GID)
+impact_options = {}
+impact_map = {
+    'Massive 3x': 3,
+    'High 2x': 2,
+    'Medium 1x': 1, 
+    'Minimal 0.25x': 0.25, 
+    'Low 0.5x': 0.5
+}
+for option in impact_field['enum_options']:
+    impact_options[option['gid']] = impact_map[option['name']]
+
+print(impact_options)
+print(pprint(impact_field))
+
+confidence_field = client.custom_fields.find_by_id(CONFIDENCE_GID)
+confidence_options = {}
+confidence_map = {
+    '100%': 1.00,
+    '80%': 0.80, 
+    '50%': 0.50, 
+    '20%': 0.20
+}
+for option in confidence_field['enum_options']:
+    confidence_options[option['gid']] = confidence_map[option['name']]
+
+print(confidence_options)
+print(pprint(confidence_field))
+
+effort_field = client.custom_fields.find_by_id(EFFORT_GID)
+effort_options = {}
+effort_map = {
+    'S': 1,
+    'M': 2, 
+    'L': 3, 
+    'XL': 4
+}
+for option in effort_field['enum_options']:
+    effort_options[option['gid']] = effort_map[option['name']]
+
+print(effort_options)
+print(pprint(effort_field))
+
+tasks = client.tasks.find_by_project(project_id, opt_fields=['name', 'custom_fields.enum_value'])
+
+SCORE_GID = '1166544034612362'
 for task in tasks:
-    print(task)
-    print(task['name'])
-
+    print(pprint(task))
+    score = 1
+    for field in task['custom_fields']:
+        if field['gid'] == REACH_GID:
+            score *= int(field['enum_value']['name'])
+        elif field['gid'] == IMPACT_GID:
+            print('impact', impact_map[field['enum_value']['name']])
+            score *= impact_map[field['enum_value']['name']]
+        elif field['gid'] == CONFIDENCE_GID:
+            print('confidence', confidence_map[field['enum_value']['name']])
+            score *= confidence_map[field['enum_value']['name']]
+        elif field['gid'] == EFFORT_GID:
+            print('effort', effort_map[field['enum_value']['name']])
+            score *= effort_map[field['enum_value']['name']]
+        print(score)
+    client.tasks.update(task['gid'], {'custom_fields': {'1166544034612362': score}})
 
 
 
