@@ -1,0 +1,35 @@
+{
+    "project_id": "1165398058700585",
+    "score_gid": "1166544034612362",
+    "reach_gid": "1165398058700602",
+    "reach_map": {
+        "S": 1,
+        "M": 2, 
+        "L": 8, 
+        "XL": 16
+    },
+    "impact_gid": "1165398058700616",
+    "impact_map": {
+        "Massive 3x": 3,
+        "High 2x": 2,
+        "Medium 1x": 1, 
+        "Low 0.5x": 0.5,
+        "Minimal 0.25x": 0.25
+    },
+    "confidence_gid": "1165398058700597",
+    "confidence_map": {
+        "100%": 1.00,
+        "80%": 0.80, 
+        "50%": 0.50,
+        "20%": 0.20, 
+        "Needs Definition": 0
+    },
+    "effort_gid": "1165398058700624",
+    "effort_map": {
+        "XS": 2,
+        "S": 1,
+        "M": 0.5, 
+        "L": 0.33, 
+        "XL": 0.25
+    }
+}
